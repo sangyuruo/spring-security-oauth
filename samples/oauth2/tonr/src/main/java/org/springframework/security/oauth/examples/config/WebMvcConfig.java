@@ -185,8 +185,10 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 		public OAuth2ProtectedResourceDetails facebook() {
 			AuthorizationCodeResourceDetails details = new AuthorizationCodeResourceDetails();
 			details.setId("facebook");
-			details.setClientId("233668646673605");
-			details.setClientSecret("33b17e044ee6a4fa383f46ec6e28ea1d");
+			details.setClientId("866549560121151");
+			details.setClientSecret("63d90d6eff661a9fb4d07e1ad2693649");
+//			details.setClientId("233668646673605");
+//			details.setClientSecret("33b17e044ee6a4fa383f46ec6e28ea1d");
 			details.setAccessTokenUri("https://graph.facebook.com/oauth/access_token");
 			details.setUserAuthorizationUri("https://www.facebook.com/dialog/oauth");
 			details.setTokenName("oauth_token");

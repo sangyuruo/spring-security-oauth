@@ -38,13 +38,14 @@ public class RedisTokenStorePrefixTests extends TokenStoreBaseTests {
 
 	@Before
 	public void setup() throws Exception {
-		try {
-			redisServer = new RedisServer();
-		} catch (Exception e) {
-			Assume.assumeNoException("Embedded Redis not starting", e);
-		}
-		redisServer.start();
-		JedisShardInfo shardInfo = new JedisShardInfo("localhost", redisServer.getPort());
+//		try {
+//			redisServer = new RedisServer();
+//		} catch (Exception e) {
+//			Assume.assumeNoException("Embedded Redis not starting", e);
+//		}
+//		redisServer.start();
+//		JedisShardInfo shardInfo = new JedisShardInfo("localhost", redisServer.getPort());
+		JedisShardInfo shardInfo = new JedisShardInfo("localhost", 6379);
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory(shardInfo);
 		tokenStore = new RedisTokenStore(connectionFactory);
 		tokenStore.setPrefix("spring:oauth2:");
@@ -52,7 +53,7 @@ public class RedisTokenStorePrefixTests extends TokenStoreBaseTests {
 
 	@After
 	public void tearDown() throws Exception {
-		redisServer.stop();
+//		redisServer.stop();
 	}
 
 	@Test

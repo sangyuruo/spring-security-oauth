@@ -44,7 +44,10 @@ public class ResourceOwnerPasswordAccessTokenProvider extends OAuth2AccessTokenS
 			throws UserRedirectRequiredException, AccessDeniedException, OAuth2AccessDeniedException {
 
 		ResourceOwnerPasswordResourceDetails resource = (ResourceOwnerPasswordResourceDetails) details;
-		return retrieveToken(request, resource, getParametersForTokenRequest(resource, request), new HttpHeaders());
+		return retrieveToken(request, 
+							 resource, 
+							 getParametersForTokenRequest(resource, request), 
+							 new HttpHeaders());
 
 	}
 

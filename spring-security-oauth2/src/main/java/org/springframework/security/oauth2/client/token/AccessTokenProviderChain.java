@@ -76,6 +76,20 @@ public class AccessTokenProviderChain extends OAuth2AccessTokenSupport implement
 		return false;
 	}
 
+	/**
+	 * 获取AccessToken<br>
+	 * 1.排除 anonymous token<br>
+	 * 2.先从请求(会话？)中获取历史的accessToken<br>
+	 * 3.没有的话，则从clientTokenServices(数据库？)获取历史的accessToken<br>
+	 * 4.判断accessToken是否过期<br>
+	 * 4.1 对于过期的accessToken，<br>
+	 *     首先：在数据库(固态存储资源？)中删除过期的accessToken<br>
+	 *     获取refresh token<br>
+	 *     使用refresh token获取accessToken<br>
+	 * 4.2 未过期，则直接使用<br>
+	 * 5.如果还是没有取到的话，则从oauth2流程获取<br>
+	 * 6.保存accessToken到数据库中
+	 */
 	public OAuth2AccessToken obtainAccessToken(OAuth2ProtectedResourceDetails resource, AccessTokenRequest request)
 			throws UserRedirectRequiredException, AccessDeniedException {
 
@@ -84,6 +98,7 @@ public class AccessTokenProviderChain extends OAuth2AccessTokenSupport implement
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 		if (auth instanceof AnonymousAuthenticationToken) {
+			//排除 anonymous token?
 			if (!resource.isClientOnly()) {
 				throw new InsufficientAuthenticationException(
 						"Authentication is required to obtain an access token (anonymous not allowed)");
@@ -91,18 +106,24 @@ public class AccessTokenProviderChain extends OAuth2AccessTokenSupport implement
 		}
 
 		if (resource.isClientOnly() || (auth != null && auth.isAuthenticated())) {
+			//先从请求(会话？)中获取历史的accessToken
 			existingToken = request.getExistingToken();
 			if (existingToken == null && clientTokenServices != null) {
+				//从clientTokenServices(数据库？)获取历史的accessToken
 				existingToken = clientTokenServices.getAccessToken(resource, auth);
 			}
 
 			if (existingToken != null) {
 				if (existingToken.isExpired()) {
+					//判断是否过期
 					if (clientTokenServices != null) {
+						//在数据库(固态存储资源？)中删除过期的accessToken
 						clientTokenServices.removeAccessToken(resource, auth);
 					}
+					//获取refresh token
 					OAuth2RefreshToken refreshToken = existingToken.getRefreshToken();
 					if (refreshToken != null) {
+						//使用refresh token获取accessToken
 						accessToken = refreshAccessToken(resource, refreshToken, request);
 					}
 				}
@@ -114,7 +135,8 @@ public class AccessTokenProviderChain extends OAuth2AccessTokenSupport implement
 		// Give unauthenticated users a chance to get a token and be redirected
 
 		if (accessToken == null) {
-			// looks like we need to try to obtain a new token.
+			// looks like we need to try to obtain a new token. 
+			// 从oauth2流程获取
 			accessToken = obtainNewAccessTokenInternal(resource, request);
 
 			if (accessToken == null) {
@@ -123,12 +145,17 @@ public class AccessTokenProviderChain extends OAuth2AccessTokenSupport implement
 		}
 
 		if (clientTokenServices != null && (resource.isClientOnly() || auth != null && auth.isAuthenticated())) {
+			//保存accessToken到数据库中
 			clientTokenServices.saveAccessToken(resource, auth, accessToken);
 		}
 
 		return accessToken;
 	}
 
+	/**
+	 * 根据details在chain中选择合适的 tokenProvider<br>
+	 * 使用该tokenProvider走oauth2流程获取新的accessToken<br>
+	 */
 	protected OAuth2AccessToken obtainNewAccessTokenInternal(OAuth2ProtectedResourceDetails details,
 			AccessTokenRequest request) throws UserRedirectRequiredException, AccessDeniedException {
 

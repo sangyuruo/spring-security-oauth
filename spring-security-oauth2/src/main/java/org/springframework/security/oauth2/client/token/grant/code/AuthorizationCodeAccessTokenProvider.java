@@ -121,10 +121,21 @@ public class AuthorizationCodeAccessTokenProvider extends OAuth2AccessTokenSuppo
 		return supportsResource(resource);
 	}
 
+	/**
+	 * 获取  code 
+	 * @param details
+	 * @param request
+	 * @return
+	 * @throws UserRedirectRequiredException
+	 * @throws UserApprovalRequiredException
+	 * @throws AccessDeniedException
+	 * @throws OAuth2AccessDeniedException
+	 */
 	public String obtainAuthorizationCode(OAuth2ProtectedResourceDetails details, AccessTokenRequest request)
 			throws UserRedirectRequiredException, UserApprovalRequiredException, AccessDeniedException,
 			OAuth2AccessDeniedException {
 
+		//参数构建
 		AuthorizationCodeResourceDetails resource = (AuthorizationCodeResourceDetails) details;
 
 		HttpHeaders headers = getHeadersForAuthorizationRequest(request);
@@ -141,6 +152,7 @@ public class AuthorizationCodeAccessTokenProvider extends OAuth2AccessTokenSuppo
 		authorizationRequestEnhancer.enhance(request, resource, form, headers);
 		final AccessTokenRequest copy = request;
 
+		//构建 extractor, extractor应该是作为解析reponse的工具
 		final ResponseExtractor<ResponseEntity<Void>> delegate = getAuthorizationResponseExtractor();
 		ResponseExtractor<ResponseEntity<Void>> extractor = new ResponseExtractor<ResponseEntity<Void>>() {
 			@Override
@@ -151,16 +163,23 @@ public class AuthorizationCodeAccessTokenProvider extends OAuth2AccessTokenSuppo
 				return delegate.extractData(response);
 			}
 		};
+		// 获取code 的URL
 		// Instead of using restTemplate.exchange we use an explicit response extractor here so it can be overridden by
 		// subclasses
-		ResponseEntity<Void> response = getRestTemplate().execute(resource.getUserAuthorizationUri(), HttpMethod.POST,
-				getRequestCallback(resource, form, headers), extractor, form.toSingleValueMap());
+		ResponseEntity<Void> response = getRestTemplate().execute(
+				resource.getUserAuthorizationUri(), 
+				HttpMethod.POST,
+				getRequestCallback(resource, form, headers), 
+				extractor, 
+				form.toSingleValueMap());
 
+		//重复提交？？
 		if (response.getStatusCode() == HttpStatus.OK) {
 			// Need to re-submit with approval...
 			throw getUserApprovalSignal(resource, request);
 		}
 
+		//解析响应结果
 		URI location = response.getHeaders().getLocation();
 		String query = location.getQuery();
 		Map<String, String> map = OAuth2Utils.extractMap(query);
@@ -206,8 +225,10 @@ public class AuthorizationCodeAccessTokenProvider extends OAuth2AccessTokenSuppo
 			}
 			obtainAuthorizationCode(resource, request);
 		}
-		return retrieveToken(request, resource, getParametersForTokenRequest(resource, request),
-				getHeadersForTokenRequest(request));
+		return retrieveToken(request, 
+							 resource, 
+							 getParametersForTokenRequest(resource, request),
+							 getHeadersForTokenRequest(request));
 
 	}
 

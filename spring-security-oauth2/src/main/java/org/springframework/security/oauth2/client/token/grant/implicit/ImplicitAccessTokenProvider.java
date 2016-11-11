@@ -59,7 +59,9 @@ public class ImplicitAccessTokenProvider extends OAuth2AccessTokenSupport implem
 		try {
 			// We can assume here that the request contains all the parameters needed for authentication etc.
 			OAuth2AccessToken token = retrieveToken(request,
-					resource, getParametersForTokenRequest(resource, request), getHeadersForTokenRequest(request));
+					resource, 
+					getParametersForTokenRequest(resource, request), 
+					getHeadersForTokenRequest(request));
 			if (token==null) {
 				// Probably an authenticated request, but approval is required.  TODO: prompt somehow?
 				throw new UserRedirectRequiredException(resource.getUserAuthorizationUri(), request.toSingleValueMap());				

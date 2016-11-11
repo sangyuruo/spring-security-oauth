@@ -40,6 +40,7 @@ public class OAuth2RestTemplate extends RestTemplate implements OAuth2RestOperat
 
 	private final OAuth2ProtectedResourceDetails resource;
 
+	//责任链，这里会处理 fetch code , 
 	private AccessTokenProvider accessTokenProvider = new AccessTokenProviderChain(Arrays.<AccessTokenProvider> asList(
 			new AuthorizationCodeAccessTokenProvider(), new ImplicitAccessTokenProvider(),
 			new ResourceOwnerPasswordAccessTokenProvider(), new ClientCredentialsAccessTokenProvider()));
@@ -99,32 +100,37 @@ public class OAuth2RestTemplate extends RestTemplate implements OAuth2RestOperat
 		return resource;
 	}
 
+	//创建一个符合oauth2规范的请求
 	@Override
 	protected ClientHttpRequest createRequest(URI uri, HttpMethod method) throws IOException {
-
+		//获取accessToken(包括oauth2流程获取方式)
 		OAuth2AccessToken accessToken = getAccessToken();
-
+		//请求认证方式
 		AuthenticationScheme authenticationScheme = resource.getAuthenticationScheme();
 		if (AuthenticationScheme.query.equals(authenticationScheme)
 				|| AuthenticationScheme.form.equals(authenticationScheme)) {
+			//将认证授权信息放在查询参数中
 			uri = appendQueryParameter(uri, accessToken);
 		}
-
+		//构建oauth2请求
 		ClientHttpRequest req = super.createRequest(uri, method);
-
+		//如果是header方式，则通过authenticator在Header中增加 oauth2认证授权信息
 		if (AuthenticationScheme.header.equals(authenticationScheme)) {
+			//将认证授权信息放在请求Header中
 			authenticator.authenticate(resource, getOAuth2ClientContext(), req);
 		}
 		return req;
 
 	}
 
+	//根据URL以及HttpMethod执行oauth2请求
 	@Override
 	protected <T> T doExecute(URI url, HttpMethod method, RequestCallback requestCallback,
 			ResponseExtractor<T> responseExtractor) throws RestClientException {
 		OAuth2AccessToken accessToken = context.getAccessToken();
 		RuntimeException rethrow = null;
 		try {
+			//执行请求，包括创建一个符合oauth2规范的请求
 			return super.doExecute(url, method, requestCallback, responseExtractor);
 		}
 		catch (AccessTokenRequiredException e) {
@@ -137,9 +143,16 @@ public class OAuth2RestTemplate extends RestTemplate implements OAuth2RestOperat
 			// Don't reveal the token value in case it is logged
 			rethrow = new OAuth2AccessDeniedException("Invalid token for client=" + getClientId());
 		}
+		
 		if (accessToken != null && retryBadAccessTokens) {
+			/**
+			 * 如果上面没有跳出方法，则说明上面步骤有异常.
+			 * 而accessToken也拿到了，则该accessToken必为一个BadAccessTokens.
+			 * 则尝试重新获取accessToken
+			 */
 			context.setAccessToken(null);
 			try {
+				//执行请求，包括创建一个符合oauth2规范的请求
 				return super.doExecute(url, method, requestCallback, responseExtractor);
 			}
 			catch (InvalidTokenException e) {
@@ -165,11 +178,12 @@ public class OAuth2RestTemplate extends RestTemplate implements OAuth2RestOperat
 	 * @return an access token
 	 */
 	public OAuth2AccessToken getAccessToken() throws UserRedirectRequiredException {
-
+		//从上下文环境获取 accessToken
 		OAuth2AccessToken accessToken = context.getAccessToken();
-
+		//假如token为空或者过期
 		if (accessToken == null || accessToken.isExpired()) {
 			try {
+				//获取accessToken(包括通过 oauth2流程)
 				accessToken = acquireAccessToken(context);
 			}
 			catch (UserRedirectRequiredException e) {
@@ -198,7 +212,7 @@ public class OAuth2RestTemplate extends RestTemplate implements OAuth2RestOperat
 
 	protected OAuth2AccessToken acquireAccessToken(OAuth2ClientContext oauth2Context)
 			throws UserRedirectRequiredException {
-
+		//从上下文环境获取 accessToken Request
 		AccessTokenRequest accessTokenRequest = oauth2Context.getAccessTokenRequest();
 		if (accessTokenRequest == null) {
 			throw new AccessTokenRequiredException(
@@ -211,13 +225,14 @@ public class OAuth2RestTemplate extends RestTemplate implements OAuth2RestOperat
 		if (stateKey != null) {
 			accessTokenRequest.setPreservedState(oauth2Context.removePreservedState(stateKey));
 		}
-
+		//从上下文获取access token
 		OAuth2AccessToken existingToken = oauth2Context.getAccessToken();
 		if (existingToken != null) {
 			accessTokenRequest.setExistingToken(existingToken);
 		}
 
 		OAuth2AccessToken accessToken = null;
+		//使用accessTokenProvider 通过 oauth2 流程获取 accessToken
 		accessToken = accessTokenProvider.obtainAccessToken(resource, accessTokenRequest);
 		if (accessToken == null || accessToken.getValue() == null) {
 			throw new IllegalStateException(
