@@ -46,6 +46,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             // TODO: put CSRF protection back into this endpoint
             .csrf()
                 .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/oauth/authorize"))
+                .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/photos"))
                 .disable()
             .logout()
             	.logoutUrl("/logout")

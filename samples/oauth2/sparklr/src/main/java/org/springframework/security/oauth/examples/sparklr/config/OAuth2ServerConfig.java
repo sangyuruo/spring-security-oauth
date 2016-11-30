@@ -82,8 +82,12 @@ public class OAuth2ServerConfig {
 						.access("#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('write')")
 					.regexMatchers(HttpMethod.GET, "/oauth/clients/([^/].*?)/users/.*")
 						.access("#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('read')")
+//					.regexMatchers(HttpMethod.GET, "/oauth/clients/.*")
+//						.access("#oauth2.clientHasRole('ROLE_CLIENT') and #oauth2.isClient() and #oauth2.hasScope('read')");
+//					.regexMatchers(HttpMethod.GET, "/oauth/clients/.*")
+//						.access("#oauth2.hasScope('read')");
 					.regexMatchers(HttpMethod.GET, "/oauth/clients/.*")
-						.access("#oauth2.clientHasRole('ROLE_CLIENT') and #oauth2.isClient() and #oauth2.hasScope('read')");
+						.access("#oauth2.clientHasRole('ROLE_CLIENT') and #oauth2.hasScope('read')");
 			// @formatter:on
 		}
 
@@ -110,12 +114,12 @@ public class OAuth2ServerConfig {
 		public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
 
 			// @formatter:off
-			clients.inMemory().withClient("tonr")
-			 			.resourceIds(SPARKLR_RESOURCE_ID)
-			 			.authorizedGrantTypes("authorization_code", "implicit")
-			 			.authorities("ROLE_CLIENT")
-			 			.scopes("read", "write")
-			 			.secret("secret")
+			clients.inMemory().withClient("tonr")	//clientId
+			 			.resourceIds(SPARKLR_RESOURCE_ID) //resource ids
+			 			.authorizedGrantTypes("authorization_code", "implicit") // grant types
+			 			.authorities("ROLE_CLIENT") //authorities
+			 			.scopes("read", "write") //scopes
+			 			.secret("secret") //
 			 		.and()
 			 		.withClient("tonr-with-redirect")
 			 			.resourceIds(SPARKLR_RESOURCE_ID)

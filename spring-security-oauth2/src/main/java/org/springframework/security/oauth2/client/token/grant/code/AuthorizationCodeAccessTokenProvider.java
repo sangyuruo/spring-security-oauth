@@ -163,7 +163,7 @@ public class AuthorizationCodeAccessTokenProvider extends OAuth2AccessTokenSuppo
 				return delegate.extractData(response);
 			}
 		};
-		// 获取code 的URL
+		// 获取code 的Http请求
 		// Instead of using restTemplate.exchange we use an explicit response extractor here so it can be overridden by
 		// subclasses
 		ResponseEntity<Void> response = getRestTemplate().execute(
@@ -173,7 +173,7 @@ public class AuthorizationCodeAccessTokenProvider extends OAuth2AccessTokenSuppo
 				extractor, 
 				form.toSingleValueMap());
 
-		//重复提交？？
+		//重复提交？？ ， 为200是异常。。
 		if (response.getStatusCode() == HttpStatus.OK) {
 			// Need to re-submit with approval...
 			throw getUserApprovalSignal(resource, request);
@@ -218,13 +218,16 @@ public class AuthorizationCodeAccessTokenProvider extends OAuth2AccessTokenSuppo
 			OAuth2AccessDeniedException {
 
 		AuthorizationCodeResourceDetails resource = (AuthorizationCodeResourceDetails) details;
-
+		//如果Code为空，则获取Code
 		if (request.getAuthorizationCode() == null) {
 			if (request.getStateKey() == null) {
+				//如果stateKey为null,则走异常逻辑
 				throw getRedirectForAuthorization(resource, request);
 			}
+			//获取Code
 			obtainAuthorizationCode(resource, request);
 		}
+		//获取Token
 		return retrieveToken(request, 
 							 resource, 
 							 getParametersForTokenRequest(resource, request),
@@ -261,6 +264,12 @@ public class AuthorizationCodeAccessTokenProvider extends OAuth2AccessTokenSuppo
 		return headers;
 	}
 
+	/**
+	 * 构建AccessToken请求参数
+	 * @param resource
+	 * @param request
+	 * @return
+	 */
 	private MultiValueMap<String, String> getParametersForTokenRequest(AuthorizationCodeResourceDetails resource,
 			AccessTokenRequest request) {
 
@@ -299,6 +308,12 @@ public class AuthorizationCodeAccessTokenProvider extends OAuth2AccessTokenSuppo
 
 	}
 
+	/**
+	 * 构建认证授权请求参数
+	 * @param resource
+	 * @param request
+	 * @return
+	 */
 	private MultiValueMap<String, String> getParametersForAuthorizeRequest(AuthorizationCodeResourceDetails resource,
 			AccessTokenRequest request) {
 
