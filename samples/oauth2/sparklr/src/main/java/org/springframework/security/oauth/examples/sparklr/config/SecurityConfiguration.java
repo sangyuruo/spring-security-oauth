@@ -17,13 +17,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().withUser("marissa").password("koala").roles("USER").and().withUser("paul")
-                .password("emu").roles("USER");
+        auth.inMemoryAuthentication()
+        	.withUser("marissa").password("koala").roles("USER")
+        	.and()
+        	.withUser("paul").password("emu").roles("USER");
     }
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/webjars/**", "/images/**", "/oauth/uncache_approvals", "/oauth/cache_approvals");
+        web.ignoring().
+        antMatchers("/webjars/**", 
+        		"/images/**", 
+        		"/oauth/uncache_approvals", 
+        		"/oauth/cache_approvals");
     }
 
     @Override

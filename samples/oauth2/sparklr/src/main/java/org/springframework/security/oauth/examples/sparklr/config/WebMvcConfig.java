@@ -81,6 +81,10 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 		return accessConfirmationController;
 	}
 
+	/**
+	 * photoService
+	 * @return
+	 */
 	@Bean
 	public PhotoServiceImpl photoServices() {
 		List<PhotoInfo> photos = new ArrayList<PhotoInfo>();

@@ -15,6 +15,8 @@
  */
 package org.springframework.security.oauth.examples.sparklr.config;
 
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,7 +114,10 @@ public class OAuth2ServerConfig {
 
 		@Override
 		public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-
+			DataSource dataSource = null ;
+			ClientDetailsService clientDetailsService = null;
+			clients.jdbc(dataSource);
+			 
 			// @formatter:off
 			clients.inMemory().withClient("tonr")	//clientId
 			 			.resourceIds(SPARKLR_RESOURCE_ID) //resource ids

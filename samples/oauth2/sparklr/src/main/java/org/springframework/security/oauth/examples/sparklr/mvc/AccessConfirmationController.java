@@ -21,7 +21,7 @@ import org.springframework.web.servlet.ModelAndView;
  * 
  * @author Ryan Heaton
  */
-@Controller
+//@Controller
 @SessionAttributes("authorizationRequest")
 public class AccessConfirmationController {
 

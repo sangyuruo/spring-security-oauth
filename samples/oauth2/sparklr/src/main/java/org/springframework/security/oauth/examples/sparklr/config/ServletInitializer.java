@@ -24,10 +24,15 @@ import org.springframework.web.servlet.support.AbstractDispatcherServletInitiali
 
 /**
  * @author Dave Syer
- * 
+ * <p>
+ * spring的servlet启动配置类, 类似 web.xml
+ * </p>
  */
 public class ServletInitializer extends AbstractDispatcherServletInitializer {
 
+	/**
+	 * Annotation 配置
+	 */
 	@Override
 	protected WebApplicationContext createServletApplicationContext() {
 		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
