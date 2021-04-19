@@ -114,9 +114,9 @@ public class OAuth2ServerConfig {
 
 		@Override
 		public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-			DataSource dataSource = null ;
-			ClientDetailsService clientDetailsService = null;
-			clients.jdbc(dataSource);
+//			DataSource dataSource = null ;
+//			ClientDetailsService clientDetailsService = null;
+//			clients.jdbc(dataSource);
 			 
 			// @formatter:off
 			clients.inMemory().withClient("tonr")	//clientId
